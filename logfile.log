@@ -1,0 +1,2 @@
+2021-04-06 23:54:32,265 - ERROR - 'MongoDBConn' object has no attribute 'url'
+2021-04-06 23:56:38,401 - ERROR - Empty host (or extra comma in host list).
