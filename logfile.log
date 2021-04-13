@@ -1,2 +1,6 @@
 2021-04-06 23:54:32,265 - ERROR - 'MongoDBConn' object has no attribute 'url'
 2021-04-06 23:56:38,401 - ERROR - Empty host (or extra comma in host list).
+2021-04-12 22:59:44,517 - ERROR - module 'scripts.constant' has no attribute 'collection_name'
+2021-04-12 23:03:07,691 - ERROR - module 'scripts.constant' has no attribute 'collection_name'
+2021-04-12 23:04:24,859 - ERROR - 12 - module 'scripts.constant' has no attribute 'collection_name'
+2021-04-12 23:04:46,060 - ERROR - 11 - module 'scripts.constant' has no attribute 'collection_name'

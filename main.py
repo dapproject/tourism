@@ -6,4 +6,6 @@ from scripts import flights
 
 if __name__ == '__main__':
     flight_obj = flights.Flights()
-    flight_obj.mongo_insert_details()
+    flight_obj.merge_cities_countries()
+    # flight_obj.get_mongo_flight_details()
+    # flight_obj.mongo_insert_details()

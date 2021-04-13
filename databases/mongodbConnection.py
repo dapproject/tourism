@@ -1,7 +1,6 @@
 import urllib
 import pymongo
-from scripts import constant
-import logging
+from scripts import constant, logfile
 
 
 class MongoDBConn(object):
@@ -21,8 +20,6 @@ class MongoDBConn(object):
         """
         Establish the mongo db connection and if it fails to create the connection then log the error in log file
         """
-        logging.basicConfig(filename='./../logfile.log', format='%(asctime)s - %(levelname)s - %(message)s',
-                            level=logging.ERROR)
         # client = pymongo.MongoClient()
         self.url = 'mongodb+srv://' + constant.MONGO_USERNAME + ':' + urllib.parse.quote_plus(
             constant.MONGO_PASSWORD) + '@' + constant.MG_DB_NAME + '.wurzf.mongodb.net/test'
@@ -30,7 +27,7 @@ class MongoDBConn(object):
             self.conn = pymongo.MongoClient(self.url)
             self.conn.server_info()
         except Exception as err:
-            logging.error(err)
+            logfile.Log().log_error(err)
 
     def close_conn(self):
         """
