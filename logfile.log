@@ -4,3 +4,4 @@
 2021-04-12 23:03:07,691 - ERROR - module 'scripts.constant' has no attribute 'collection_name'
 2021-04-12 23:04:24,859 - ERROR - 12 - module 'scripts.constant' has no attribute 'collection_name'
 2021-04-12 23:04:46,060 - ERROR - 11 - module 'scripts.constant' has no attribute 'collection_name'
+2021-04-14 03:10:49,155 - ERROR - 12 - 1054 (42S22): Unknown column 'nan' in 'field list'

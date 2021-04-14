@@ -1,3 +1,4 @@
+import numpy as np
 import pandas.io.json
 import requests
 import json
@@ -60,6 +61,9 @@ class Flights(object):
 
         # Drop na values
         new_df = new_df.dropna()
+        # Drop duplicates
+        new_df = new_df.drop_duplicates()
+
         return new_df
 
     def collect_countries(self):
@@ -81,12 +85,16 @@ class Flights(object):
         new_df[['country_iso2', 'country_name']] = df[['country_iso2', 'country_name']]
         # Drop na values
         new_df = new_df.dropna()
+        # Drop duplicates
+        new_df = new_df.drop_duplicates()
         return new_df
 
     def collect_data(self):
         # json_response = self.request_api('flights', constant.ACCESS_KEY,60)
         # self.write_json(json_response, constant.FLIGHTS_FILENAME)
-        self.mongo_insert_details(file_name=constant.FLIGHTS_FILENAME, collection_name=constant.MG_FLIGHT_TABLE)
+        # self.mongo_insert_details(file_name=constant.FLIGHTS_FILENAME, collection_name=constant.MG_FLIGHT_TABLE)
+        data = self.get_mongo_flight_details(collection_name=constant.MG_FLIGHT_TABLE)
+        return self.data_cleansing(data=data)
 
     def write_json(self, data, file_name):
         """
@@ -141,12 +149,30 @@ class Flights(object):
     def merge_cities_countries(self):
         countries_df = self.collect_countries()
         cities_df = self.collect_cities()
-        new_df = pd.merge(cities_df, countries_df, on='country_iso2')
-        new_df = new_df.drop('country_iso2', axis=1)
-        return new_df
+        return pd.merge(cities_df, countries_df, on='country_iso2')
+
+    def insert_cities_countries(self):
+        df = self.merge_cities_countries()
+        df = df.drop('country_iso2', axis=1)
+        df = df.drop('iata_code', axis=1)
+        cities_list = [tuple(rows) for rows in df.values]
+        sql_conn = sqldb.SqlDBConn().conn
+        cursor = sql_conn.cursor()
+        try:
+            drop_city_table = 'drop table if exists ' + constant.CITIES_TABLE
+            create_city_table = 'Create table ' + constant.CITIES_TABLE + ' (city_id int NOT NULL AUTO_INCREMENT, city varchar(255) NOT NULL, country varchar(255) NOT NULL, PRIMARY KEY(city_id))'
+            insert_city_sql = 'insert into ' + constant.CITIES_TABLE + ' (city,country) values (%s, %s)'
+            cursor.execute(drop_city_table)
+            cursor.execute(create_city_table)
+            cursor.executemany(insert_city_sql, cities_list)
+            sql_conn.commit()
+        except Exception as err:
+            sql_conn.rollback()
+            logfile.Log().log_error(err)
+        finally:
+            sql_conn.close()
 
     def data_cleansing(self, data):
-
         pd.set_option('display.max_columns', None)
         new_df = pd.DataFrame()
         primary_df = pd.DataFrame(data)
@@ -159,49 +185,66 @@ class Flights(object):
 
         # Flight
         flight_df = pandas.io.json.json_normalize(primary_df['flight'])
-        new_df['flight_number'] = flight_df['number']
+        new_df[['flight_number', 'flight_iata']] = flight_df[['number', 'iata']]
 
         # Departure
         departure_df = pandas.io.json.json_normalize(primary_df['departure'])
         new_df[
-            ['departure_delay', 'departure_airport', 'departure_scheduled', 'departure_timezone']] = departure_df[
-            ['delay', 'airport', 'scheduled', 'timezone']]
+            ['departure_delay', 'departure_airport', 'departure_scheduled', 'departure_iata']] = departure_df[
+            ['delay', 'airport', 'scheduled', 'iata']]
 
         # Arrival
         arrival_df = pandas.io.json.json_normalize(primary_df['arrival'])
-        new_df[['arrival_delay', 'arrival_airport', 'arrival_scheduled', 'arrival_timezone']] = arrival_df[
-            ['delay', 'airport', 'scheduled', 'timezone']]
+        new_df[['arrival_delay', 'arrival_airport', 'arrival_scheduled', 'arrival_iata']] = arrival_df[
+            ['delay', 'airport', 'scheduled', 'iata']]
 
-        sql_conn_obj = sqldb.SqlDBConn()
-        sql_conn = sql_conn_obj.conn
-        # cursor = sql_conn.cursor()
+        cities_df = self.merge_cities_countries()
 
-        new_df.to
-        print(new_df)
+        new_df = pd.merge(new_df, cities_df, left_on='departure_iata', right_on='iata_code')
+        new_df = new_df.rename({'city_name': 'departure_city'}, axis=1)
 
-        # print(df1.isnull().sum())
-        # print(df1['aircraft'].loc[[4899]])
-        # print(df.columns.values)
-        # self.data_cleansing(details_obj)
+        new_df = pd.merge(new_df, cities_df, left_on='arrival_iata', right_on='iata_code')
+        new_df = new_df.rename({'city_name': 'arrival_city'}, axis=1)
 
-#         column_names = ['airline_name', 'aircraft', 'flight_date', 'departure']
-#         table_name = constant.MG_FLIGHT_TABLE
-#
-#         query_string = """CREATE TABLE flights_detail (
-#     ID int NOT NULL,
-#     LastName varchar(255) NOT NULL,
-#     FirstName varchar(255),
-#     Age int,
-#     PRIMARY KEY (ID)
-# ); """
-#         for details in details_obj:
-#             column_names.append(details['departure'])
-#         sql_conn_obj = sqldb.SqlDBConn()
-#         sql_conn = sql_conn_obj.conn
-#         cursor = sql_conn.cursor()
-#
-#         cursor.execute("Drop table if exists " + table_name)
-#         # cursor.execute("create table " + table_name)
-#         cursor.execute(query_string)
-#         sql_conn.commit()
-#         sql_conn.close()
+        sql_conn = sqldb.SqlDBConn().conn
+        cursor = sql_conn.cursor()
+        city_table_df = pd.read_sql("select * from " + constant.CITIES_TABLE, con=sql_conn)
+
+        new_df = pd.merge(new_df, city_table_df, left_on='departure_city', right_on='city')
+        new_df = new_df.rename({'city_id': 'departure_city_id'}, axis=1)
+
+        new_df = pd.merge(new_df, city_table_df, left_on='arrival_city', right_on='city')
+        new_df = new_df.rename({'city_id': 'arrival_city_id'}, axis=1)
+
+        new_df = new_df.drop(
+            ['departure_iata', 'arrival_iata', 'country_iso2_x', 'iata_code_x', 'country_name_x', 'country_iso2_y',
+             'iata_code_y', 'country_name_y', 'departure_city', 'arrival_city', 'city_x', 'country_x', 'city_y',
+             'country_y'], axis=1)
+
+        new_df = new_df.replace({np.NaN: None})
+
+        drop_flight_table = 'drop table if exists ' + constant.MG_FLIGHT_TABLE
+        flight_table_sql = 'create table ' + constant.MG_FLIGHT_TABLE + ' (id int not null AUTO_INCREMENT, airline_name varchar(255), ' \
+                                                                        'flight_status varchar(255), flight_number varchar(255), flight_iata varchar(255), ' \
+                                                                        'departure_delay varchar(255), departure_airport varchar(255), departure_scheduled varchar(255), ' \
+                                                                        'arrival_delay varchar(255), arrival_airport varchar(255), arrival_scheduled varchar(255),' \
+                                                                        ' departure_city_id int, arrival_city_id int, PRIMARY KEY (id), FOREIGN KEY (arrival_city_id) REFERENCES ' + constant.CITIES_TABLE + ' (city_id), FOREIGN KEY (departure_city_id) REFERENCES ' + constant.CITIES_TABLE + ' (city_id))'
+
+        column_name_list = []
+        for col in new_df.columns:
+            column_name_list.append(col)
+        data_list = [tuple(rows) for rows in new_df.values]
+        insert_sql = "INSERT INTO " + constant.MG_FLIGHT_TABLE + "(" + ', '.join(
+            column_name_list) + ") VALUES (" + "%s," * (
+                             len(column_name_list) - 1) + "%s)"
+
+        try:
+            cursor.execute(drop_flight_table)
+            cursor.execute(flight_table_sql)
+            cursor.executemany(insert_sql, data_list)
+            sql_conn.commit()
+        except Exception as err:
+            logfile.Log().log_error(err)
+            sql_conn.rollback()
+        finally:
+            sql_conn.close()
