@@ -24,8 +24,8 @@ class MongoDBConn(object):
         self.url = 'mongodb+srv://' + constant.MONGO_USERNAME + ':' + urllib.parse.quote_plus(
             constant.MONGO_PASSWORD) + '@' + constant.MG_DB_NAME + '.wurzf.mongodb.net/test'
         try:
-            # self.conn = pymongo.MongoClient(self.url)
-            self.conn = pymongo.MongoClient()
+            self.conn = pymongo.MongoClient(self.url)
+            # self.conn = pymongo.MongoClient()
             self.conn.server_info()
         except Exception as err:
             logfile.Log().log_error(err)

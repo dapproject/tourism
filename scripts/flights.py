@@ -6,6 +6,7 @@ from scripts import constant, logfile
 from databases import mongodbConnection, sqldb
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 class Flights(object):
@@ -208,6 +209,7 @@ class Flights(object):
 
         sql_conn = sqldb.SqlDBConn().conn
         cursor = sql_conn.cursor()
+
         city_table_df = pd.read_sql("select * from " + constant.CITIES_TABLE, con=sql_conn)
 
         new_df = pd.merge(new_df, city_table_df, left_on='departure_city', right_on='city')
@@ -248,3 +250,10 @@ class Flights(object):
             sql_conn.rollback()
         finally:
             sql_conn.close()
+
+    def flight_status(self):
+        sql_conn = sqldb.SqlDBConn().conn
+        # cursor = sql_conn.cursor()
+        city_table_df = pd.read_sql("select country from " + constant.CITIES_TABLE, con=sql_conn)
+        city_table_df.plot(kind='bar', stacked=True)
+        plt.show()

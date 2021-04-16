@@ -8,5 +8,16 @@ if __name__ == '__main__':
     flight_obj = flights.Flights()
     # flight_obj.insert_cities_countries()
     flight_obj.collect_data()
+    attration()
+    prjawal()
+
+
+    Rohit
+    Utkarsh
+    Prajwal
+
+
+
+    # flight_obj.flight_status()
     # flight_obj.get_mongo_flight_details()
     # flight_obj.mongo_insert_details()
