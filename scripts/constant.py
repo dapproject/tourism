@@ -20,3 +20,5 @@ COUNTRY_FILENAME = 'countries'
 FLIGHTS_FILENAME = 'flightsapi'
 SQL_SERVER = 'localhost'
 CITIES_TABLE = 'cities_countries'
+MG_ATTRACTIONS_TABLE = 'attractions'
+
