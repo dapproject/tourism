@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup as bs
 import requests
 import pandas as pd
-from databases import mongodbConnection
+from databases import mongodbConnection, sqldb
 from scripts import constant, logfile
 
 
@@ -62,17 +62,30 @@ class Attractions(object):
         finally:
             conn.close_conn()
 
-    def data_cleaning(self, data):
-        df = pd.DataFrame(list(data))
-        df.drop(['_id'], axis='columns', inplace=True)
-        df.head(520)
-        df[df[['Places']].duplicated() == True]
+ def data_cleaning(self, data):
+     df = pd.DataFrame(list(data))
+     df.drop(['_id'], axis='columns', inplace=True)
+     df.head(520)
+     df[df[['Places']].duplicated() == True]
 
         # obj.close_conn()
         #
         # client = mo
         # db = client['tourism']
         # col = db['attractions']
+ 	 sql_conn = sqldb.SqlDBConn().conn
+     cursor = sql_conn.cursor()
+	try:
+		cursor.execute('''DROP TABLE dbo.Attractions''')
+		cursor.execute('''CREATE TABLE Attractions ( City nvarchar(200) , Places nvarchar(200) , Address nvarchar(200) , Website nvarchar(200),Phone nvarchar(200) , Rating nvarchar(200) , Review nvarchar(200))''')
+        for index, row in df.iterrows():
+            cursor.execute("INSERT INTO Attractions (City,Places,Address,Website,Phone,Rating,Review) values(?,?,?,?,?,?,?)", row.City, row.Places, row.Address, row.Website, row.Phone, row.Rating, row.Review)
+        cnxn.commit()
+	except Exception as err:
+        logfile.Log().log_error(err)
+    finally:
+        cursor.close()
+	
 
 
 obj = Attractions()
