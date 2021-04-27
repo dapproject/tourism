@@ -16,7 +16,7 @@ The aviation dataset is collected from aviation stack website. It provides the a
 ├──main.py
 ├──requirements.txt
 ```
-## Installtion for Aviation dataset
+## To install python dependencies for Aviation dataset
 Use the package manager pip to install dependencies 
 ```
 pip3 install -r requirements.txt
