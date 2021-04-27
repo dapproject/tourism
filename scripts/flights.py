@@ -313,8 +313,7 @@ class Flights(object):
                 "SELECT country,count(country) as c_count FROM flights_detail fd INNER JOIN cities_countries cc on fd.departure_city_id=cc.city_id where flight_status='scheduled' GROUP by cc.country ORDER BY count(country) DESC",
                 con=sql_conn)
             fig = px.choropleth(flight_status_df, locations=flight_status_df['country'], locationmode='country names',
-                                color='c_count', labels={'c_count': 'Number of Scheduled Flights'},
-                                color_continuous_scale='Inferno')
+                                color='c_count', labels={'c_count': 'Number of Scheduled Flights'})
             fig.show(renderer="browser")
         except Exception as err:
             logfile.Log().log_error(err)
