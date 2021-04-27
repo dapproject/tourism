@@ -1,4 +1,6 @@
-import mysql.connector as mc
+# Script Created by Rohit Yadav
+
+import pyodbc
 from scripts import constant, logfile
 
 
@@ -20,15 +22,9 @@ class SqlDBConn(object):
         Establish the database connection and if it fails to create the connection then log the error in log file
         """
 
-        # conn_string = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + constant.SQL_SERVER + ';DATABASE=' + constant.MG_DB_NAME + ';UID=' + constant.SQL_USERNAME + ';PWD=' + constant.SQL_PASSWORD
-        conn_string = {
-            'user': constant.SQL_USERNAME,
-            'password': constant.SQL_PASSWORD,
-            'host': 'localhost',
-            'database': constant.MG_DB_NAME
-        }
+        conn_string = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + constant.SQL_SERVER + ';DATABASE=' + constant.SQL_DB_NAME + ';UID=' + constant.SQL_USERNAME + ';PWD=' + constant.SQL_PASSWORD
         try:
-            self.conn = mc.connect(**conn_string)
+            self.conn = pyodbc.connect(conn_string)
         except Exception as err:
             logfile.Log().log_error(err)
 

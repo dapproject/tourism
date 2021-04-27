@@ -1,3 +1,5 @@
+# Script Created by Rohit Yadav
+
 import urllib
 import pymongo
 from scripts import constant, logfile
@@ -20,12 +22,10 @@ class MongoDBConn(object):
         """
         Establish the mongo db connection and if it fails to create the connection then log the error in log file
         """
-        # client = pymongo.MongoClient()
         self.url = 'mongodb+srv://' + constant.MONGO_USERNAME + ':' + urllib.parse.quote_plus(
             constant.MONGO_PASSWORD) + '@' + constant.MG_DB_NAME + '.wurzf.mongodb.net/test'
         try:
             self.conn = pymongo.MongoClient(self.url)
-            # self.conn = pymongo.MongoClient()
             self.conn.server_info()
         except Exception as err:
             logfile.Log().log_error(err)

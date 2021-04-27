@@ -1,3 +1,5 @@
+# Script Created by Rohit Yadav
+
 import configparser as cp
 import os
 
@@ -18,7 +20,7 @@ MG_FLIGHT_COUNTRIES_TABLE = 'countries'
 CITY_FILENAME = 'cities'
 COUNTRY_FILENAME = 'countries'
 FLIGHTS_FILENAME = 'flightsapi'
-SQL_SERVER = 'localhost'
+SQL_SERVER = 'tcp:dapgroup1.database.windows.net'
+SQL_DB_NAME = 'dap'
 CITIES_TABLE = 'cities_countries'
 MG_ATTRACTIONS_TABLE = 'attractions'
-
