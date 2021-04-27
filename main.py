@@ -8,7 +8,7 @@ from scripts import flights
 if __name__ == '__main__':
     flight_obj = flights.Flights()
 
-    flight_obj.collect_data()
+    # flight_obj.collect_data()
     flight_obj.schedule_graph()
     flight_obj.arrival_delay()
     flight_obj.flight_status()
